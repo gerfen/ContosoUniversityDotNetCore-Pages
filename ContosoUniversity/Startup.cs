@@ -1,8 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using ContosoUniversity.Data;
 using ContosoUniversity.Infrastructure;
 using ContosoUniversity.Infrastructure.Tags;
@@ -10,8 +6,12 @@ using ContosoUniversity.Pages.Instructors;
 using FluentValidation.AspNetCore;
 using HtmlTags;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace ContosoUniversity
 {
@@ -45,21 +45,21 @@ namespace ContosoUniversity
 
             services.AddHtmlTags(new TagConventions());
 
-            services.AddMvc(opt =>
+            services.AddRazorPages(opt =>
                 {
-                    opt.Filters.Add(typeof(DbContextTransactionPageFilter));
-                    opt.Filters.Add(typeof(ValidatorPageFilter));
-                    opt.ModelBinderProviders.Insert(0, new EntityModelBinderProvider());
+                    opt.Conventions.ConfigureFilter(new DbContextTransactionPageFilter());
+                    opt.Conventions.ConfigureFilter(new ValidatorPageFilter());
                 })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                 .AddFluentValidation(cfg => { cfg.RegisterValidatorsFromAssemblyContaining<Startup>(); });
+
+            services.AddMvc(opt => opt.ModelBinderProviders.Insert(0, new EntityModelBinderProvider()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseMiniProfiler();
-            
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -67,10 +67,23 @@ namespace ContosoUniversity
             else
             {
                 app.UseExceptionHandler("/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
             }
 
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseMvc();
+
+            app.UseCookiePolicy();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapRazorPages();
+            });
         }
     }
 }

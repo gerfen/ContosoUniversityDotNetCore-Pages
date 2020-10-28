@@ -4,15 +4,28 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using ContosoUniversity.Pages.Instructors;
+using DelegateDecompiler;
 
 namespace ContosoUniversity.Models
 {
-    public class Instructor : Person
+    public class Instructor : IEntity
     {
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(50)]
+        public string LastName { get; set; }
+
+        [Required]
+        [Column("FirstName")]
+        [StringLength(50)]
+        public string FirstMidName { get; set; }
+
         [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
-        [Display(Name = "Hire Date")]
         public DateTime HireDate { get; set; }
+
+        [Computed]
+        public string FullName => LastName + ", " + FirstMidName;
 
         public ICollection<CourseAssignment> CourseAssignments { get; private set; } = new List<CourseAssignment>();
         public OfficeAssignment OfficeAssignment { get; private set; }
@@ -58,13 +71,13 @@ namespace ContosoUniversity.Models
                 return;
             }
 
-            var selectedCoursesHS = new HashSet<string>(selectedCourses);
+            var selectedCoursesHs = new HashSet<string>(selectedCourses);
             var instructorCourses = new HashSet<int>
-                (CourseAssignments.Select(c => c.CourseID));
+                (CourseAssignments.Select(c => c.CourseId));
 
             foreach (var course in courses)
             {
-                if (selectedCoursesHS.Contains(course.Id.ToString()))
+                if (selectedCoursesHs.Contains(course.Id.ToString()))
                 {
                     if (!instructorCourses.Contains(course.Id))
                     {
@@ -75,7 +88,7 @@ namespace ContosoUniversity.Models
                 {
                     if (instructorCourses.Contains(course.Id))
                     {
-                        var toRemove = CourseAssignments.Single(ci => ci.CourseID == course.Id);
+                        var toRemove = CourseAssignments.Single(ci => ci.CourseId == course.Id);
                         CourseAssignments.Remove(toRemove);
                     }
                 }

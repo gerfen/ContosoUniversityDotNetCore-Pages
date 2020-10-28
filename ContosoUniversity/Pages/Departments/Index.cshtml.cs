@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
+using DelegateDecompiler.EntityFrameworkCore;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +62,7 @@ namespace ContosoUniversity.Pages.Departments
                 CancellationToken token) => _context
                 .Departments
                 .ProjectTo<Model>(_configuration)
+                .DecompileAsync()
                 .ToListAsync(token);
         }
     }

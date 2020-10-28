@@ -1,9 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using HtmlTags;
 using HtmlTags.Conventions;
-using HtmlTags.Reflection;
 
 namespace ContosoUniversity.Infrastructure.Tags
 {
@@ -19,8 +17,8 @@ namespace ContosoUniversity.Infrastructure.Tags
                 .AddClass("datepicker")
                 .Value(m.Value<DateTime?>() != null ? m.Value<DateTime>().ToShortDateString() : string.Empty));
             Editors.If(er => er.Accessor.Name.EndsWith("id", StringComparison.OrdinalIgnoreCase)).BuildBy(a => new HiddenTag().Value(a.StringValue()));
-            Editors.IfPropertyIs<byte[]>().BuildBy(a => new HiddenTag().Value(Convert.ToBase64String(a.Value<byte[]>())));
-
+            Editors.IfPropertyIs<byte[]>().ModifyWith(m => m.CurrentTag.Value(Convert.ToBase64String(m.Value<byte[]>())));
+            Editors.IfPropertyIs<byte[]>().BuildBy(a => new HiddenTag());
 
             Labels.Always.AddClass("control-label");
             Labels.ModifyForAttribute<DisplayAttribute>((t, a) => t.Text(a.Name));
